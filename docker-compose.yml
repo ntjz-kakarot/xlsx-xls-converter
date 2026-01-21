@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    container_name: xlsx-xls-converter
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - MAX_FILE_SIZE_MB=10
+      - CLEANUP_INTERVAL_MINUTES=30
+      - CLEANUP_AGE_MINUTES=60
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,27 @@
+# Production Docker Compose Configuration
+# Use this file on your remote server to deploy the pre-built image from GitHub Container Registry
+#
+# Usage:
+#   1. Replace YOUR-USERNAME with your GitHub username
+#   2. If package is private, login first:
+#      echo YOUR_TOKEN | docker login ghcr.io -u YOUR-USERNAME --password-stdin
+#   3. Run: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  web:
+    image: ghcr.io/YOUR-USERNAME/xlsx-xls-converter:latest
+    container_name: xlsx-xls-converter
+    ports:
+      - "5000:5000"  # Change to "80:5000" for HTTP access
+    environment:
+      - FLASK_ENV=production
+      - MAX_FILE_SIZE_MB=10
+      - CLEANUP_INTERVAL_MINUTES=30
+      - CLEANUP_AGE_MINUTES=60
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

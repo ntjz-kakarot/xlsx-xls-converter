@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XLSX to XLS Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>XLSX to XLS Converter</h1>
+            <p class="subtitle">Convert Excel 2007+ (.xlsx) files to legacy Excel (.xls) format</p>
+        </header>
+
+        <main>
+            <div class="upload-section" id="uploadSection">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">📄</div>
+                    <h2>Drop your .xlsx file here</h2>
+                    <p>or</p>
+                    <button class="browse-btn" id="browseBtn">Browse Files</button>
+                    <input type="file" id="fileInput" accept=".xlsx" hidden>
+                    <p class="file-info">Maximum file size: {{ max_size_mb }}MB</p>
+                </div>
+
+                <div class="progress-section hidden" id="progressSection">
+                    <div class="spinner"></div>
+                    <p class="progress-text" id="progressText">Uploading file...</p>
+                </div>
+
+                <div class="message-section hidden" id="messageSection">
+                    <div class="message" id="message"></div>
+                    <button class="action-btn hidden" id="downloadBtn">Download XLS File</button>
+                    <button class="action-btn secondary" id="convertAnotherBtn">Convert Another File</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>About XLS Format Limitations</h3>
+                <ul>
+                    <li>Maximum 65,536 rows</li>
+                    <li>Maximum 256 columns</li>
+                    <li>Sheet names limited to 31 characters</li>
+                    <li>Images and charts are not supported</li>
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <p>Running locally on your machine</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
