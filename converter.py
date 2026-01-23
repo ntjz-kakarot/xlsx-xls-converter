@@ -18,16 +18,30 @@ class XLSXConverter:
         self.xls_max_cols = xls_max_cols
         self._style_cache = {}
 
-    def _get_xlwt_style(self, number_format):
+    def _get_xlwt_style(self, number_format, value=None):
         """Get or create xlwt style for a given number format."""
-        if number_format in self._style_cache:
-            return self._style_cache[number_format]
+        # Auto-detect format for numeric values with "General" format
+        if (number_format is None or number_format == 'General') and value is not None:
+            if isinstance(value, bool):
+                number_format = 'General'
+            elif isinstance(value, int):
+                number_format = '0'  # Integer format
+            elif isinstance(value, float):
+                # Check if it's a whole number stored as float
+                if value == int(value):
+                    number_format = '0'
+                else:
+                    number_format = '0.00'  # Decimal format
+
+        cache_key = number_format or 'General'
+        if cache_key in self._style_cache:
+            return self._style_cache[cache_key]
 
         style = xlwt.XFStyle()
         if number_format and number_format != 'General':
             style.num_format_str = number_format
 
-        self._style_cache[number_format] = style
+        self._style_cache[cache_key] = style
         return style
 
     def validate_xlsx(self, file_path):
@@ -81,7 +95,8 @@ class XLSXConverter:
                         if cell.value is not None:
                             try:
                                 # Get the number format and create style
-                                style = self._get_xlwt_style(cell.number_format)
+                                # Pass value to auto-detect format for "General" cells
+                                style = self._get_xlwt_style(cell.number_format, cell.value)
                                 ws_xls.write(row_idx, col_idx, cell.value, style)
                             except Exception:
                                 # Fallback: write as string without style
