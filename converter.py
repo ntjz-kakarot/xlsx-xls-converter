@@ -16,6 +16,19 @@ class XLSXConverter:
     def __init__(self, xls_max_rows=65536, xls_max_cols=256):
         self.xls_max_rows = xls_max_rows
         self.xls_max_cols = xls_max_cols
+        self._style_cache = {}
+
+    def _get_xlwt_style(self, number_format):
+        """Get or create xlwt style for a given number format."""
+        if number_format in self._style_cache:
+            return self._style_cache[number_format]
+
+        style = xlwt.XFStyle()
+        if number_format and number_format != 'General':
+            style.num_format_str = number_format
+
+        self._style_cache[number_format] = style
+        return style
 
     def validate_xlsx(self, file_path):
         if not os.path.exists(file_path):
@@ -50,6 +63,9 @@ class XLSXConverter:
         try:
             self.validate_xlsx(input_path)
 
+            # Clear style cache for each conversion
+            self._style_cache = {}
+
             wb_xlsx = load_workbook(input_path, data_only=True)
             wb_xls = xlwt.Workbook()
 
@@ -59,13 +75,17 @@ class XLSXConverter:
                 truncated_name = sheet_name[:31]
                 ws_xls = wb_xls.add_sheet(truncated_name)
 
-                for row_idx, row in enumerate(ws_xlsx.iter_rows(values_only=True)):
-                    for col_idx, value in enumerate(row):
-                        if value is not None:
+                # Iterate over cells (not values_only) to get formatting
+                for row_idx, row in enumerate(ws_xlsx.iter_rows()):
+                    for col_idx, cell in enumerate(row):
+                        if cell.value is not None:
                             try:
-                                ws_xls.write(row_idx, col_idx, value)
-                            except Exception as cell_error:
-                                ws_xls.write(row_idx, col_idx, str(value))
+                                # Get the number format and create style
+                                style = self._get_xlwt_style(cell.number_format)
+                                ws_xls.write(row_idx, col_idx, cell.value, style)
+                            except Exception:
+                                # Fallback: write as string without style
+                                ws_xls.write(row_idx, col_idx, str(cell.value))
 
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             wb_xls.save(output_path)
